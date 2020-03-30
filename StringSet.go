@@ -7,7 +7,10 @@ import (
 const (
 	defaultCapacityBits = 4
 	defaultCapacity     = 1 << defaultCapacityBits
-	resizeThreshold     = 0.75
+
+	//resize fraction
+	loadFactorNum = 3
+	loadFactorDen = 4
 )
 
 type StringSet interface {
@@ -39,7 +42,7 @@ func (s *set) Add(str string) bool {
 			return false
 		}
 	}
-	if float32((s.count+1)/s.capacity) >= resizeThreshold {
+	if s.count+1 >= s.capacity*loadFactorNum/loadFactorDen {
 		s.B++
 		s.resizeSet()
 		m = hash & bucketMask(s.B)
@@ -87,7 +90,7 @@ func (s *set) Delete(str string) bool {
 		if str == *el {
 			s.buckets[i] = removeEl(bucket, i)
 			s.count--
-			if float32(s.count/bucketShift(s.B-1)) < resizeThreshold {
+			if s.count < bucketShift(s.B-1)*loadFactorNum/loadFactorDen {
 				s.B--
 				s.resizeSet()
 			}
