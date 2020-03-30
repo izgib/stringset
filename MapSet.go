@@ -15,7 +15,7 @@ func (m *mapSet) Add(str string) bool {
 	if !ok {
 		m.set[str] = void{}
 	}
-	return ok
+	return !ok
 }
 
 func (m *mapSet) In(str string) bool {

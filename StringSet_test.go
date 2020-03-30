@@ -1,7 +1,6 @@
 package stringset
 
 import (
-	"fmt"
 	"math/rand"
 	"strconv"
 	"testing"
@@ -11,35 +10,25 @@ import (
 
 func Test_stringSet(t *testing.T) {
 	stringSet := NewStringSet()
-	str := "lol 12"
-	wrongStr := "1445vig"
-	assert.True(t, stringSet.Add(str))
-	assert.True(t, stringSet.In(str))
-	assert.True(t, !stringSet.Add(str))
-	assert.True(t, stringSet.Delete(str))
-	assert.True(t, !stringSet.In(str))
-
-	assert.True(t, !stringSet.In(wrongStr))
-	assert.True(t, !stringSet.Delete(wrongStr))
+	testSetImpl(t, stringSet)
 }
 
-func Test_lul(t *testing.T) {
-	slice := make([]*string, 0, 10)
-	for i, str := range slice {
-		fmt.Printf("%d: %s\n", i, *str)
-	}
-	str := "hello"
-	slice = append(slice, &str)
-	for i, str := range slice {
-		fmt.Printf("%d: %s\n", i, *str)
-	}
-	println(slice)
+func Test_mapSet(t *testing.T) {
+	mapSet := NewMapSet()
+	testSetImpl(t, mapSet)
+}
 
-	slice = removeEl(slice, 0)
-	for i, str := range slice {
-		fmt.Printf("%d: %s\n", i, *str)
-	}
-	print(slice)
+func testSetImpl(t *testing.T, set StringSet) {
+	str := "lol 12"
+	wrongStr := "1445vig"
+	assert.True(t, set.Add(str))
+	assert.True(t, set.In(str))
+	assert.True(t, !set.Add(str))
+	assert.True(t, set.Delete(str))
+	assert.True(t, !set.In(str))
+
+	assert.True(t, !set.In(wrongStr))
+	assert.True(t, !set.Delete(wrongStr))
 }
 
 const NumItems = 1 << 15

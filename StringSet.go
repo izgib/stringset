@@ -17,12 +17,12 @@ type StringSet interface {
 }
 
 func NewStringSet() StringSet {
-	set := &stringSet{hash: maphash.Hash{}, capacity: defaultCapacity, B: defaultCapacityBits}
+	set := &set{hash: maphash.Hash{}, capacity: defaultCapacity, B: defaultCapacityBits}
 	set.resizeSet()
 	return set
 }
 
-type stringSet struct {
+type set struct {
 	hash     maphash.Hash
 	capacity uint32
 	count    uint32
@@ -30,7 +30,7 @@ type stringSet struct {
 	B        uint8
 }
 
-func (s *stringSet) Add(str string) bool {
+func (s *set) Add(str string) bool {
 	hash := s.getHash(str)
 	m := hash & bucketMask(s.B)
 	bucket := s.buckets[m]
@@ -49,7 +49,7 @@ func (s *stringSet) Add(str string) bool {
 	return true
 }
 
-func (s *stringSet) resizeSet() {
+func (s *set) resizeSet() {
 	s.capacity = bucketShift(s.B)
 	buckets := make([][]*string, s.capacity)
 	for i := uint32(0); i < s.capacity; i++ {
@@ -64,13 +64,13 @@ func (s *stringSet) resizeSet() {
 	s.buckets = buckets
 }
 
-func (s *stringSet) getHash(str string) uint32 {
+func (s *set) getHash(str string) uint32 {
 	s.hash.Reset()
 	s.hash.WriteString(str)
 	return uint32(s.hash.Sum64())
 }
 
-func (s *stringSet) In(str string) bool {
+func (s *set) In(str string) bool {
 	m := s.getHash(str) & bucketMask(s.B)
 	for _, el := range s.buckets[m] {
 		if str == *el {
@@ -80,7 +80,7 @@ func (s *stringSet) In(str string) bool {
 	return false
 }
 
-func (s *stringSet) Delete(str string) bool {
+func (s *set) Delete(str string) bool {
 	m := s.getHash(str) & bucketMask(s.B)
 	bucket := s.buckets[m]
 	for i, el := range bucket {
