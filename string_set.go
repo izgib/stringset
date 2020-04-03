@@ -88,7 +88,7 @@ func (s *set) Delete(str string) bool {
 	bucket := s.buckets[m]
 	for i, el := range bucket {
 		if str == *el {
-			s.buckets[i] = removeEl(bucket, i)
+			s.buckets[m] = removeEl(bucket, i)
 			s.count--
 			if s.count < bucketShift(s.B-1)*loadFactorNum/loadFactorDen {
 				s.B--
@@ -112,8 +112,9 @@ func bucketMask(b uint8) uint32 {
 }
 
 func removeEl(slice []*string, ind int) []*string {
-	for i := ind + 1; i < len(slice); i++ {
-		slice[i-1] = slice[i]
+	lastInd := len(slice) - 1
+	if ind != lastInd {
+		slice[ind] = slice[lastInd]
 	}
-	return slice[:len(slice)-1]
+	return slice[:lastInd]
 }

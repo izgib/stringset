@@ -3,7 +3,6 @@ package stringset
 import (
 	"fmt"
 	"hash/maphash"
-	"math"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -12,6 +11,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const NumItems = 1 << 15
+
+var testExamples [NumItems]string
+
+func init() {
+	for i := 0; i < NumItems; i++ {
+		testExamples[i] = "addr:" + strconv.FormatInt(rand.Int63n(NumItems*32), 16)
+	}
+}
+
 func Test_stringSet(t *testing.T) {
 	stringSet := NewStringSet()
 	testSetImpl(t, stringSet)
@@ -19,7 +28,6 @@ func Test_stringSet(t *testing.T) {
 }
 
 func Test_stringSet_resizeSet(t *testing.T) {
-
 	stringSet := &set{hash: maphash.Hash{}, capacity: defaultCapacity, B: defaultCapacityBits}
 	stringSet.resizeSet()
 	for i := 0; i < defaultCapacity*loadFactorNum/loadFactorDen; i++ {
@@ -46,9 +54,7 @@ func testSetImpl(t *testing.T, set StringSet) {
 	assert.True(t, !set.Delete(wrongStr))
 }
 
-const NumItems = 1 << 15
-
-func BenchmarkStringSet(b *testing.B) {
+func BenchmarkStringSetWithCollisionInfo(b *testing.B) {
 	b.StopTimer()
 	stringSet := &set{hash: maphash.Hash{}, capacity: defaultCapacity, B: defaultCapacityBits}
 	stringSet.resizeSet()
@@ -67,7 +73,6 @@ func BenchmarkStringSet(b *testing.B) {
 
 		i = 0
 		for {
-			//b.Logf("count: %d, i: %d", count, i)
 			if elBeforeResize == 0 {
 				elBeforeResize = int(bucketShift(stringSet.B) * loadFactorNum / loadFactorDen)
 				statLogged = false
@@ -128,15 +133,22 @@ func collisionInfo(b *testing.B, count int, buckets [][]*string) {
 	b.Logf("strings: %d, %s", count, hist.String())
 }
 
+func BenchmarkStringSet(b *testing.B) {
+	stringSet := NewStringSet()
+	testSet(b, stringSet)
+}
+
 func BenchmarkNewMapSet(b *testing.B) {
-	b.StopTimer()
 	mapSet := NewMapSet()
 	testSet(b, mapSet)
 }
 
 func testSet(b *testing.B, set StringSet) {
-	count := NumItems
-	coinCount := 0
+	for i := 0; i < NumItems; i++ {
+		set.Add(testExamples[i])
+	}
+
+	/*coinCount := 0
 	for count > 0 {
 		subtrahend := min(count, 1024)
 		var buffer [1024]string
@@ -153,7 +165,7 @@ func testSet(b *testing.B, set StringSet) {
 		b.StopTimer()
 		count -= subtrahend
 	}
-	b.Logf("coincidences: %d", coinCount)
+	b.Logf("coincidences: %d", coinCount)*/
 }
 
 func min(a int, b int) int {
@@ -161,30 +173,4 @@ func min(a int, b int) int {
 		return a
 	}
 	return b
-}
-
-// max returns the maximum value in the input slice. If the slice is empty, max will panic.
-func max(s []float64) float64 {
-	return s[maxIdx(s)]
-}
-
-// maxIdx returns the index of the maximum value in the input slice. If several
-// entries have the maximum value, the first such index is returned. If the slice
-// is empty, maxIdx will panic.
-func maxIdx(s []float64) int {
-	if len(s) == 0 {
-		panic("floats: zero slice length")
-	}
-	max := math.NaN()
-	var ind int
-	for i, v := range s {
-		if math.IsNaN(v) {
-			continue
-		}
-		if v > max || math.IsNaN(max) {
-			max = v
-			ind = i
-		}
-	}
-	return ind
 }
